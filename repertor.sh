@@ -84,8 +84,10 @@ searchdir=$( if [[ "$searchdir" =~ ^[^/] ]]; then       # valid directory
     fi
 )
 
-fprompt=$( echo $searchdir | sed -e 's/^.*\/\([^/]*\)\/$/\1/')
+# create the prompt from the complete search path
+fzprompt=$( echo $searchdir | sed -e 's/^.*\/\([^/]*\)\/$/\1/')
 
+# set some variables, based on the defaults, config, and commandline arguments
 picker=$( if [[ -n $pval ]]; then 
         echo $pval 
     elif [[ -n $default_picker ]]; then
@@ -115,12 +117,15 @@ if [[ $verbose -gt 0 ]]; then
     echo "picker: $picker"
     echo "type: $type"
     echo "viewer: $viewer"
-    echo "fprompt: $fprompt"
+    echo "fzprompt: $fzprompt"
 fi
 
 # copied from my original script
+FZF_DEFAULT_OPTS=${FZF_DEFAULT_OPTS/FZPROMPT/$fzprompt}
 export FZF_DEFAULT_OPTS
 
+# use a regex to limit the search options, via `find`
+# trim the entries using `sed`
 selected=$( find "$searchdir" -type f -regextype "egrep" -regex "$type" | 
     sed -e "s/^${searchdir//\//\\\/}//g" |
     $picker )
